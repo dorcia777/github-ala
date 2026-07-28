@@ -1,0 +1,31 @@
+pipeline{
+  agent any
+  environment {
+    IMAGE_NAME = 'dorcia777/github-ala'
+  }
+  stages{
+    stage('Checkout'){
+      steps{
+        git branch 'main', url: 'https://github.com/dorcia777/github-ala'
+      }
+    }
+    stage('Build Docker image'){
+      steps{
+        bat "docker build -t %IMAGE_NAME%:latest ."
+      }
+    }
+    stage('Oush to Dockerhub'){
+      steps{
+        withCredentials([usernamePassword(credentialsId: 'ae4a1eac-846e-4a4d-a6d3-f95d501ddf35', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]){
+          bat """
+          echo %DOCKER_PASS% |
+          docker login -u %DOCKER_USER%  --password-stdin
+          docker push %IMAGE_NAME%:latest
+          docker logout
+          """
+        }
+        
+      }
+    }
+  }
+}
